@@ -1,6 +1,6 @@
 from  PIL import Image
 import argparse
-from os.path import basename
+from os.path import basename, splitext
 
 
 def create_parser():
@@ -22,8 +22,14 @@ def resize_image(**params):
     return resized_image
 
 
-def save_image(image, resized_path):
-    pass
+def save_image(image, name, ext, image_path=None):
+    if '.jpg' in ext:
+        ext = 'JPEG'
+    if '.png' in ext:
+        ext = 'PNG'
+    int(width), int(height) = image.size
+    new_file_name = '%s' % image_path
+    image.save(new_file_name, ext)
 
 
 if __name__ == '__main__':
@@ -31,11 +37,8 @@ if __name__ == '__main__':
     params = parser.parse_args()
     if params.scale and params.width or params.scale and params.height:
         print('Error!')
-        print('If --scale is defined, then --height or --width not allowed')
+        print('If [--scale] is defined, then [--height] or [--width] not allowed')
         exit(11)
+    image_name, image_ext = splitext(basename(params.original_path))
     new_image = resize_image(**vars(params))
-    if params.resized_path:
-        save_image(new_image, params.resized_path)
-    else:
-        file_name = basename(params.original_path)
-        
+    save_image(new_image, image_name, image_ext, params.resized_path)
