@@ -13,19 +13,17 @@ def create_parser():
     return parser
 
 
-def resize_image(image, **params):
-    width, height = image.size
-    image_ratio = round((image.width / image.height), 1)
-    if params['scale']:
-        new_size = (int(params['scale']*width), int(params['scale']*height))
-    if params['width'] and params['height']:
-        new_size = (params['width'], params['height'])
-    elif params['width']:
-        new_size = (params['width'], int(params['width']/image_ratio))
-    elif params['height']:
-        new_size = (int(params['height']*image_ratio), params['height'])
-    resized_image = image.resize(new_size)
-    return resized_image
+def load_image(path):
+    image = Image.open(path)
+    image_name, image_ext = splitext(basename(path))
+    allowed_formats = ['.jpg', '.png']
+    if image_ext not in allowed_formats:
+        print('Error! Allowed image formats: %s' % allowed_formats)
+        exit(11)
+    image_info = {'image': image,
+                  'image_name': image_name,
+                  'image_ext': image_ext}
+    return image_info
 
 
 def save_image(image, name, ext, out_path=None):
@@ -44,6 +42,28 @@ def save_image(image, name, ext, out_path=None):
     image.save(new_file_name, ext)
 
 
+def resize_image(image, **params):
+    width, height = image.size
+    image_ratio = round((image.width / image.height), 1)
+    if params['scale']:
+        new_size = (int(params['scale']*width), int(params['scale']*height))
+    if params['width'] and params['height']:
+        new_size = (params['width'], params['height'])
+    elif params['width']:
+        new_size = (params['width'], int(params['width']/image_ratio))
+    elif params['height']:
+        new_size = (int(params['height']*image_ratio), params['height'])
+    resized_image = image.resize(new_size)
+    return resized_image
+
+
+def check_ratio(image_1, image_2):
+    image_1_ratio = round((image_1.width / image_1.height), 1)
+    image_2_ratio = round((image_2.width / image_2.height), 1)
+    if image_1_ratio != image_2_ratio:
+        print('Warning! New image size ratio is different than original')
+
+
 if __name__ == '__main__':
     parser = create_parser()
     params = parser.parse_args()
@@ -51,11 +71,7 @@ if __name__ == '__main__':
         print('Error!')
         print('If [--scale] is defined, then [--height] or [--width] not allowed')
         exit(11)
-    image = Image.open(params.original_path)    
-    image_name, image_ext = splitext(basename(params.original_path))
-    new_image = resize_image(image, **vars(params))
-    image_ratio = round((image.width / image.height), 1)
-    new_image_ratio = round((new_image.width / new_image.height), 1)
-    if image_ratio != new_image_ratio:
-        print('Warning! New image size ratio is different than original')
-    save_image(new_image, image_name, image_ext, params.output)
+    image = load_image(params.original_path)
+    new_image = resize_image(image['image'], **vars(params))
+    check_ratio(image['image'], new_image)
+    save_image(new_image, image['image_name'], image['image_ext'], params.output)
