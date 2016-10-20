@@ -52,7 +52,7 @@ def resize_image(image, scale=None, width=None, height=None):
     elif height:
         new_size = (int(height*image_ratio), height)
     else:
-        return image
+        return
     resized_image = image.resize(new_size)
     return resized_image
 
@@ -80,6 +80,9 @@ if __name__ == '__main__':
         params.scale,
         params.width,
         params.height)
+    if not new_image:
+        print('No resize parameters were given')
+        exit(11)
     check_ratio(image['image'], new_image)
     save_image(
         new_image,
